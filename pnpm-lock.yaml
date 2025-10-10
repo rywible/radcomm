@@ -27,7 +27,35 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)
 
-  apps/web:
+  core:
+    dependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
+      drizzle-orm:
+        specifier: ^0.44.6
+        version: 0.44.6(@types/pg@8.15.5)(pg@8.16.3)
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.15.5
+        version: 8.15.5
+      drizzle-kit:
+        specifier: ^0.31.5
+        version: 0.31.5
+      tsx:
+        specifier: ^4.20.6
+        version: 4.20.6
+
+  web:
     devDependencies:
       '@playwright/test':
         specifier: ^1.55.1
@@ -62,28 +90,6 @@ importers:
       vite:
         specifier: ^7.1.7
         version: 7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)
-
-  packages/backend:
-    dependencies:
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
-      drizzle-orm:
-        specifier: ^0.44.6
-        version: 0.44.6(@types/pg@8.15.5)(pg@8.16.3)
-      pg:
-        specifier: ^8.16.3
-        version: 8.16.3
-    devDependencies:
-      '@types/pg':
-        specifier: ^8.15.5
-        version: 8.15.5
-      drizzle-kit:
-        specifier: ^0.31.5
-        version: 0.31.5
-      tsx:
-        specifier: ^4.20.6
-        version: 4.20.6
 
 packages:
 
@@ -1591,6 +1597,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   vite-node@3.2.4:
     resolution: {integrity: sha512-EbKSKh+bh1E1IFxeO0pg1n4dvoOTt0UDiXMd/qn++r98+jPO1xtJilvXldeuQ8giIB5IkpjCgMleHMNEsGH6pg==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -1700,6 +1710,9 @@ packages:
 
   zimmerframe@1.1.4:
     resolution: {integrity: sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ==}
+
+  zod@4.1.12:
+    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
 
 snapshots:
 
@@ -2920,6 +2933,8 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
+  uuid@13.0.0: {}
+
   vite-node@3.2.4(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6):
     dependencies:
       cac: 6.7.14
@@ -3019,3 +3034,5 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zimmerframe@1.1.4: {}
+
+  zod@4.1.12: {}

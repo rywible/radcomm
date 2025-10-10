@@ -5,8 +5,18 @@ services:
       dockerfile: Dockerfile.dev
     command: ["pnpm", "web:dev"]
     volumes:
-      - ./apps/web/src:/app/apps/web/src
+      - ./web/src:/app/web/src
     ports:
       - "5173:5173"
     environment:
       - NODE_ENV=development
+    env_file:
+      - ./.env
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: radcomm
+      POSTGRES_PASSWORD: radcomm
+      POSTGRES_DB: radcomm
+    ports:
+      - "5432:5432"
