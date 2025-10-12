@@ -1,5 +1,5 @@
 packages:
   - core
-  - web
+  - storefront
   - tooling
   - worker

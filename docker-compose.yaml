@@ -1,13 +1,13 @@
 services:
-  web:
+  storefront:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: ["pnpm", "web:dev"]
+    command: ["pnpm", "storefront:dev"]
     volumes:
-      - ./web/src:/app/web/src
+      - ./storefront/src:/app/storefront/src
     ports:
-      - "5173:5173"
+      - "4321:4321"
     environment:
       - NODE_ENV=development
     env_file:
