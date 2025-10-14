@@ -1,0 +1,283 @@
+---
+// Navbar component for the ecommerce storefront
+---
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-zinc-900 backdrop-blur-xl border-b border-zinc-800/50">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+		<div class="flex items-center justify-between h-16">
+			<!-- Logo -->
+			<a 
+				href="/" 
+				class="flex items-center space-x-2 group cursor-pointer"
+				transition:animate="slide"
+			>
+				<div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+					<span class="text-white font-bold text-lg">R</span>
+				</div>
+				<span class="text-white font-semibold text-xl hidden sm:block">RadComm</span>
+			</a>
+
+			<!-- Desktop Navigation -->
+			<div class="hidden md:flex items-center space-x-8">
+				<a 
+					href="/products" 
+					class="text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer font-medium"
+					transition:animate="slide"
+				>
+					Products
+				</a>
+				<a 
+					href="/collections" 
+					class="text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer font-medium"
+					transition:animate="slide"
+				>
+					Collections
+				</a>
+				<a 
+					href="/about" 
+					class="text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer font-medium"
+					transition:animate="slide"
+				>
+					About
+				</a>
+				<a 
+					href="/contact" 
+					class="text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer font-medium"
+					transition:animate="slide"
+				>
+					Contact
+				</a>
+			</div>
+
+			<!-- Right Side Actions -->
+			<div class="flex items-center space-x-4">
+				<!-- Search -->
+				<button 
+					class="text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer p-2 hover:bg-zinc-800/50 rounded-lg"
+					aria-label="Search"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+					</svg>
+				</button>
+
+				<!-- Cart -->
+				<a 
+					href="/cart" 
+					class="relative text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer p-2 hover:bg-zinc-800/50 rounded-lg"
+					aria-label="Shopping cart"
+					transition:animate="slide"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+					</svg>
+					<span class="absolute -top-1 -right-1 bg-violet-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+						0
+					</span>
+				</a>
+
+				<!-- Account -->
+				<a 
+					href="/account" 
+					class="hidden sm:block text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer p-2 hover:bg-zinc-800/50 rounded-lg"
+					aria-label="User account"
+					transition:animate="slide"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+					</svg>
+				</a>
+
+				<!-- Mobile Menu Button -->
+				<button 
+					id="mobile-menu-button"
+					class="md:hidden cursor-pointer p-2 rounded-lg hover:bg-zinc-800/50 group"
+					aria-label="Toggle menu"
+					aria-expanded="false"
+				>
+					<div class="w-6 h-6 flex flex-col items-center justify-center gap-[6px]">
+						<span id="menu-bar-1" class="w-5 h-[2.5px] bg-zinc-400 group-hover:!bg-white rounded-full transition-all duration-300 ease-out"></span>
+						<span id="menu-bar-2" class="w-5 h-[2.5px] bg-zinc-400 group-hover:!bg-white rounded-full transition-all duration-300 ease-out"></span>
+					</div>
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Mobile Menu -->
+	<div 
+		id="mobile-menu" 
+		class="md:hidden border-t border-zinc-800/50 bg-zinc-900 backdrop-blur-xl overflow-hidden transition-all duration-500 ease-in-out max-h-0 opacity-0"
+	>
+		<div class="px-4 py-4 space-y-3">
+			<a 
+				href="/products" 
+				class="mobile-menu-item block text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer font-medium px-4 py-3 rounded-lg"
+				style="animation-delay: 50ms;"
+			>
+				Products
+			</a>
+			<a 
+				href="/collections" 
+				class="mobile-menu-item block text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer font-medium px-4 py-3 rounded-lg"
+				style="animation-delay: 100ms;"
+			>
+				Collections
+			</a>
+			<a 
+				href="/about" 
+				class="mobile-menu-item block text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer font-medium px-4 py-3 rounded-lg"
+				style="animation-delay: 150ms;"
+			>
+				About
+			</a>
+			<a 
+				href="/contact" 
+				class="mobile-menu-item block text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer font-medium px-4 py-3 rounded-lg"
+				style="animation-delay: 200ms;"
+			>
+				Contact
+			</a>
+			<a 
+				href="/account" 
+				class="mobile-menu-item block text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer font-medium px-4 py-3 rounded-lg sm:hidden"
+				style="animation-delay: 250ms;"
+			>
+				Account
+			</a>
+		</div>
+	</div>
+</nav>
+
+<!-- Spacer to prevent content from going under fixed navbar -->
+<div class="h-16"></div>
+
+<style>
+	@keyframes slideIn {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes slideOut {
+		from {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		to {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+	}
+
+	#mobile-menu.menu-open {
+		max-height: 400px;
+		opacity: 1;
+	}
+
+	#mobile-menu.menu-open .mobile-menu-item {
+		animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		opacity: 0;
+	}
+
+	#mobile-menu.menu-closing .mobile-menu-item {
+		animation: slideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+	}
+
+	/* Animated menu icon */
+	#mobile-menu-button.menu-active #menu-bar-1 {
+		transform: translateY(4px) rotate(45deg);
+	}
+
+	#mobile-menu-button.menu-active #menu-bar-2 {
+		transform: translateY(-4px) rotate(-45deg);
+	}
+</style>
+
+<script>
+	// Mobile menu toggle functionality
+	const menuButton = document.getElementById('mobile-menu-button');
+	const mobileMenu = document.getElementById('mobile-menu');
+
+	function openMenu() {
+		mobileMenu?.classList.remove('menu-closing');
+		mobileMenu?.classList.add('menu-open');
+		menuButton?.classList.add('menu-active');
+		menuButton?.setAttribute('aria-expanded', 'true');
+	}
+
+	function closeMenu() {
+		mobileMenu?.classList.add('menu-closing');
+		mobileMenu?.classList.remove('menu-open');
+		menuButton?.classList.remove('menu-active');
+		menuButton?.setAttribute('aria-expanded', 'false');
+		
+		// Remove closing class after animation completes
+		setTimeout(() => {
+			mobileMenu?.classList.remove('menu-closing');
+		}, 300);
+	}
+
+	menuButton?.addEventListener('click', () => {
+		const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+		if (isExpanded) {
+			closeMenu();
+		} else {
+			openMenu();
+		}
+	});
+
+	// Close mobile menu when clicking a link
+	const mobileLinks = mobileMenu?.querySelectorAll('a');
+	mobileLinks?.forEach(link => {
+		link.addEventListener('click', () => {
+			closeMenu();
+		});
+	});
+
+	// Reinitialize script after view transitions
+	document.addEventListener('astro:after-swap', () => {
+		const menuButton = document.getElementById('mobile-menu-button');
+		const mobileMenu = document.getElementById('mobile-menu');
+
+		function openMenu() {
+			mobileMenu?.classList.remove('menu-closing');
+			mobileMenu?.classList.add('menu-open');
+			menuButton?.classList.add('menu-active');
+			menuButton?.setAttribute('aria-expanded', 'true');
+		}
+
+		function closeMenu() {
+			mobileMenu?.classList.add('menu-closing');
+			mobileMenu?.classList.remove('menu-open');
+			menuButton?.classList.remove('menu-active');
+			menuButton?.setAttribute('aria-expanded', 'false');
+			
+			setTimeout(() => {
+				mobileMenu?.classList.remove('menu-closing');
+			}, 300);
+		}
+
+		menuButton?.addEventListener('click', () => {
+			const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+			if (isExpanded) {
+				closeMenu();
+			} else {
+				openMenu();
+			}
+		});
+
+		const mobileLinks = mobileMenu?.querySelectorAll('a');
+		mobileLinks?.forEach(link => {
+			link.addEventListener('click', () => {
+				closeMenu();
+			});
+		});
+	});
+</script>
+

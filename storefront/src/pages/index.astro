@@ -1,11 +1,64 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import ProductHero from '../components/ui/ProductHero.astro';
+import ProductCard from '../components/ui/ProductCard.astro';
+import coffeeImage from '../assets/coffee.png';
 ---
 
 <Layout>
-	<Welcome />
+	<main>
+		<h1 class="hidden">Shop Products</h1>
+		<section class="flex flex-col w-full">
+			<a href="/products/coffee" class="w-full h-full">
+			<ProductHero 
+				title="Buy Us A Coffee"
+				description="Make ecomm slap."
+				ctaText="Support us"
+				imageSrc={coffeeImage.src}
+				imageClass="-mt-24 ml-5 sm:ml-[33px]"
+			/>
+			</a>
+		</section>
+
+		<!-- Product Grid Section -->
+		<section class="w-full bg-zinc-100 py-3 sm:py-20 lg:py-24 px-3">
+			<div class="max-w-7xl mx-auto">
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-8">
+					<ProductCard 
+						title="Buy us a coffee machine"
+						description="Make ecomm slap harder."
+						imageSrc={coffeeImage.src}
+						imageAlt="Premium coffee blend"
+						ctaText="Shop Now"
+						href="/products/coffee-blend"
+					/>
+					<ProductCard 
+						title="Artisan Coffee Mug"
+						description="Hand-crafted ceramic mugs designed to keep your coffee at the perfect temperature while looking stunning."
+						imageSrc={coffeeImage.src}
+						imageAlt="Artisan coffee mug"
+						ctaText="Shop Now"
+						href="/products/coffee-mug"
+					/>
+					<ProductCard 
+						title="Coffee Grinder Pro"
+						description="Professional-grade burr grinder with 15 settings for the perfect grind, from espresso to French press."
+						imageSrc={coffeeImage.src}
+						imageAlt="Coffee grinder pro"
+						ctaText="Shop Now"
+						href="/products/grinder-pro"
+					/>
+					<ProductCard 
+						title="Monthly Subscription"
+						description="Get freshly roasted coffee delivered to your door every month. Customize your blend and roast level."
+						imageSrc={coffeeImage.src}
+						imageAlt="Coffee subscription box"
+						ctaText="Subscribe"
+						href="/products/subscription"
+					/>
+				</div>
+			</div>
+		</section>
+	</main>
 </Layout>
+	

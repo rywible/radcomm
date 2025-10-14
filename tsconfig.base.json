@@ -6,8 +6,9 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@radcomm/backend/*": ["packages/backend/src/*"],
-      "@radcomm/ui/*": ["packages/ui/src/*"]
+      "@core/*": ["core/src/*"],
+      "@storefront/*": ["storefront/src/*"],
+      "@ui/*": ["ui/*"]
     },
     "types": ["node"]
   }
