@@ -15,6 +15,7 @@ type ProductAggregateParams = {
   slug: string;
   collectionIds: string[];
   variants: ProductVariant[];
+  version: number;
   events: DomainEvent<string, Record<string, unknown>>[];
 };
 
@@ -39,6 +40,7 @@ export class ProductAggregate {
   private collectionIds: string[];
   private variants: ProductVariant[];
   private deleted: boolean = false;
+  public version: number = 0;
   public events: DomainEvent<string, Record<string, unknown>>[];
 
   constructor({
@@ -50,6 +52,7 @@ export class ProductAggregate {
     slug,
     collectionIds,
     variants,
+    version = 0,
     events,
   }: ProductAggregateParams) {
     this.id = id;
@@ -60,6 +63,7 @@ export class ProductAggregate {
     this.slug = slug;
     this.collectionIds = collectionIds;
     this.variants = variants;
+    this.version = version;
     this.events = events;
   }
 
@@ -79,35 +83,7 @@ export class ProductAggregate {
     if (collectionIds.length === 0) {
       throw new Error("Product must have at least one collection");
     }
-    const events = [];
-    const productCreatedEvent = new ProductCreatedEvent({
-      createdAt,
-      correlationId,
-      aggregateId: id,
-      version: 0,
-      payload: {
-        title,
-        description,
-        slug,
-        collectionIds,
-        variants,
-      },
-      committed: false,
-    });
-    events.push(productCreatedEvent);
-    for (let i = 0; i < variants.length; i++) {
-      const variant = variants[i]!;
-      const productVariantAddedEvent = new ProductVariantAddedEvent({
-        createdAt,
-        correlationId,
-        aggregateId: id,
-        version: 1 + i,
-        payload: { variant },
-        committed: false,
-      });
-      events.push(productVariantAddedEvent);
-    }
-    return new ProductAggregate({
+    const productAggregate = new ProductAggregate({
       id,
       correlationId,
       createdAt,
@@ -116,8 +92,32 @@ export class ProductAggregate {
       slug,
       collectionIds,
       variants,
-      events,
+      version: 0,
+      events: [],
     });
+    const productCreatedEvent = new ProductCreatedEvent({
+      createdAt,
+      correlationId,
+      aggregateId: id,
+      version: 0,
+      payload: { title, description, slug, collectionIds, variants },
+      committed: false,
+    });
+    productAggregate.events.push(productCreatedEvent);
+    for (let i = 0; i < variants.length; i++) {
+      productAggregate.version++;
+      const variant = variants[i]!;
+      const productVariantAddedEvent = new ProductVariantAddedEvent({
+        createdAt,
+        correlationId,
+        aggregateId: id,
+        version: productAggregate.version,
+        payload: { variant },
+        committed: false,
+      });
+      productAggregate.events.push(productVariantAddedEvent);
+    }
+    return productAggregate;
   }
 
   apply(event: DomainEvent<string, Record<string, unknown>>) {
@@ -132,6 +132,7 @@ export class ProductAggregate {
       default:
         throw new Error(`Unknown event type: ${event.eventName}`);
     }
+    this.version++;
     this.events.push(event);
   }
 
@@ -139,16 +140,18 @@ export class ProductAggregate {
     if (this.deleted) {
       throw new Error("Product is already deleted");
     }
-    const latestVersion = this.events.length - 1;
-    const productDeletedEvent = new ProductDeletedEvent({
-      createdAt: new Date(),
-      correlationId: this.correlationId,
-      aggregateId: this.id,
-      version: latestVersion + 1,
-      payload: {},
-      committed: false,
-    });
-    this.apply(productDeletedEvent);
+    this.deleted = true;
+    this.version++;
+    this.events.push(
+      new ProductDeletedEvent({
+        createdAt: new Date(),
+        correlationId: this.correlationId,
+        aggregateId: this.id,
+        version: this.version,
+        payload: {},
+        committed: false,
+      })
+    );
   }
 
   static loadFromHistory(
@@ -172,6 +175,7 @@ export class ProductAggregate {
       slug: firstEvent.payload.slug,
       collectionIds: firstEvent.payload.collectionIds,
       variants: [],
+      version: 0,
       events: [firstEvent],
     });
 
