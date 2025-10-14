@@ -2,7 +2,12 @@ import type { DomainEvent } from "../domain/_base/domainEvent";
 import { EventsTable } from "./orm";
 import { eq, asc } from "drizzle-orm";
 import type { TX } from "./postgres";
-import { OrderRequestedEvent } from "../domain/order/events";
+import {
+  ProductCreatedEvent,
+  ProductVariantAddedEvent,
+  ProductDeletedEvent,
+} from "../domain/product/events";
+import type { ProductVariant } from "../domain/product/entities";
 
 type TransactionalClient = Pick<TX, "insert" | "select">;
 
@@ -38,7 +43,6 @@ export class EventRepository {
     event: DomainEvent<string, Record<string, unknown>>
   ): Promise<void> {
     const eventEntity: typeof EventsTable.$inferInsert = {
-      id: event.id,
       createdAt: event.createdAt,
       eventName: event.eventName,
       correlationId: event.correlationId,
@@ -65,19 +69,42 @@ export class EventRepository {
       .where(eq(EventsTable.aggregateId, aggregateId))
       .orderBy(asc(EventsTable.version));
 
-    return events.map((event) => {
+    return events.map((event: typeof EventsTable.$inferSelect) => {
       switch (event.eventName) {
-        case "OrderRequested":
-          return new OrderRequestedEvent({
-            id: event.id,
+        case "ProductCreated":
+          return new ProductCreatedEvent({
             createdAt: event.createdAt,
             aggregateId: event.aggregateId,
             correlationId: event.correlationId,
             version: event.version,
             payload: event.payload as {
-              customerId: string;
-              items: Array<{ sku: string; qty: number }>;
+              title: string;
+              description: string;
+              slug: string;
+              collectionIds: string[];
+              variants: ProductVariant[];
             },
+            committed: true,
+          });
+        case "ProductVariantAdded":
+          return new ProductVariantAddedEvent({
+            createdAt: event.createdAt,
+            aggregateId: event.aggregateId,
+            correlationId: event.correlationId,
+            version: event.version,
+            payload: event.payload as {
+              variant: ProductVariant;
+            },
+            committed: true,
+          });
+        case "ProductDeleted":
+          return new ProductDeletedEvent({
+            createdAt: event.createdAt,
+            aggregateId: event.aggregateId,
+            correlationId: event.correlationId,
+            version: event.version,
+            payload: {},
+            committed: true,
           });
         default:
           throw new Error(`Unknown event type: ${event.eventName}`);

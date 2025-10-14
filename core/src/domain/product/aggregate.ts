@@ -1,6 +1,10 @@
 import { ProductVariant } from "./entities";
 import type { DomainEvent } from "../_base/domainEvent";
-import { ProductCreatedEvent, ProductVariantAddedEvent } from "./events";
+import {
+  ProductCreatedEvent,
+  ProductVariantAddedEvent,
+  ProductDeletedEvent,
+} from "./events";
 
 type ProductAggregateParams = {
   id: string;
@@ -34,6 +38,7 @@ export class ProductAggregate {
   private slug: string;
   private collectionIds: string[];
   private variants: ProductVariant[];
+  private deleted: boolean = false;
   public events: DomainEvent<string, Record<string, unknown>>[];
 
   constructor({
@@ -79,7 +84,7 @@ export class ProductAggregate {
       createdAt,
       correlationId,
       aggregateId: id,
-      version: 1,
+      version: 0,
       payload: {
         title,
         description,
@@ -121,10 +126,29 @@ export class ProductAggregate {
         const productVariantAddedEvent = event as ProductVariantAddedEvent;
         this.variants.push(productVariantAddedEvent.payload.variant);
         break;
+      case "ProductDeleted":
+        this.deleted = true;
+        break;
       default:
         throw new Error(`Unknown event type: ${event.eventName}`);
     }
     this.events.push(event);
+  }
+
+  delete() {
+    if (this.deleted) {
+      throw new Error("Product is already deleted");
+    }
+    const latestVersion = this.events.length - 1;
+    const productDeletedEvent = new ProductDeletedEvent({
+      createdAt: new Date(),
+      correlationId: this.correlationId,
+      aggregateId: this.id,
+      version: latestVersion + 1,
+      payload: {},
+      committed: false,
+    });
+    this.apply(productDeletedEvent);
   }
 
   static loadFromHistory(

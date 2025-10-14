@@ -22,3 +22,9 @@ export const CreateProductCommand = z.object({
 });
 
 export type CreateProductCommand = z.infer<typeof CreateProductCommand>;
+
+export const DeleteProductCommand = z.object({
+  productId: z.string(),
+});
+
+export type DeleteProductCommand = z.infer<typeof DeleteProductCommand>;
