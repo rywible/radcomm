@@ -50,7 +50,6 @@ export class ProductVariantCreatedIntegrationEvent
 // Product Variant Archived Integration Event
 type ProductVariantArchivedPayload = {
   variantId: string;
-  sku: string;
 };
 
 type ProductVariantArchivedIntegrationEventType = IntegrationEvent<

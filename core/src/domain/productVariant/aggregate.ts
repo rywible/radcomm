@@ -133,9 +133,7 @@ export class ProductVariantAggregate {
       correlationId: this.correlationId,
       aggregateId: this.id,
       version: this.version,
-      payload: {
-        sku: this.sku,
-      },
+      payload: {},
       committed: false,
     });
     this.uncommittedEvents.push(event);

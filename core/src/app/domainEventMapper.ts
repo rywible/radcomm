@@ -1,5 +1,5 @@
 import type { DomainEvent } from "@core/domain/_base/domainEvent";
-import type { IntegrationEvent } from "@core/integration/events/_base";
+import type { IntegrationEvent } from "@core/integrationEvents/_base";
 import {
   ProductCreatedEvent,
   ProductArchivedEvent,
@@ -11,11 +11,11 @@ import {
 import {
   ProductCreatedIntegrationEvent,
   ProductArchivedIntegrationEvent,
-} from "@core/integration/events/product";
+} from "@core/integrationEvents/product";
 import {
   ProductVariantCreatedIntegrationEvent,
   ProductVariantArchivedIntegrationEvent,
-} from "@core/integration/events/productVariant";
+} from "@core/integrationEvents/productVariant";
 import { randomUUID } from "crypto";
 
 export class DomainEventMapper {
@@ -87,7 +87,6 @@ export class DomainEventMapper {
             correlationId: event.correlationId,
             payload: {
               variantId: event.aggregateId,
-              sku: event.payload.sku,
             },
           }),
         ];

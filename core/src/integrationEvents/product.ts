@@ -1,4 +1,4 @@
-import type { IntegrationEvent } from "./_base";
+import type { IntegrationEvent } from "../_base";
 
 // Product Created Integration Event
 type ProductCreatedPayload = {

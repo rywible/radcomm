@@ -1,5 +1,5 @@
 import type { DomainEvent } from "../domain/_base/domainEvent";
-import type { IntegrationEvent } from "../integration/events/_base";
+import type { IntegrationEvent } from "../integrationEvents/_base";
 import { EventsTable, OutboxTable } from "./orm";
 import { eq, asc } from "drizzle-orm";
 import type { TX } from "./postgres";
@@ -15,11 +15,11 @@ import {
 import {
   ProductCreatedIntegrationEvent,
   ProductArchivedIntegrationEvent,
-} from "../integration/events/product";
+} from "../integrationEvents/product";
 import {
   ProductVariantCreatedIntegrationEvent,
   ProductVariantArchivedIntegrationEvent,
-} from "../integration/events/productVariant";
+} from "../integrationEvents/productVariant";
 
 type TransactionalClient = Pick<TX, "insert" | "select" | "update" | "delete">;
 
@@ -136,6 +136,7 @@ export class EventRepository {
             committed: true,
           });
         case "ProductVariantArchived":
+          const payload = event.payload as { sku: string };
           return new ProductVariantArchivedEvent({
             createdAt: event.createdAt,
             aggregateId: event.aggregateId,
