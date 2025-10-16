@@ -9,6 +9,10 @@ import {
   ProductVariantArchivedEvent,
 } from "@core/domain/productVariant/events";
 import {
+  CollectionCreatedEvent,
+  CollectionArchivedEvent,
+} from "@core/domain/collection/events";
+import {
   ProductCreatedIntegrationEvent,
   ProductArchivedIntegrationEvent,
 } from "@core/integrationEvents/product";
@@ -16,6 +20,10 @@ import {
   ProductVariantCreatedIntegrationEvent,
   ProductVariantArchivedIntegrationEvent,
 } from "@core/integrationEvents/productVariant";
+import {
+  CollectionCreatedIntegrationEvent,
+  CollectionArchivedIntegrationEvent,
+} from "@core/integrationEvents/collection";
 import { randomUUID } from "crypto";
 
 export class DomainEventMapper {
@@ -92,8 +100,41 @@ export class DomainEventMapper {
         ];
       }
 
+      case "CollectionCreated": {
+        const event = domainEvent as CollectionCreatedEvent;
+        return [
+          new CollectionCreatedIntegrationEvent({
+            eventId: randomUUID(),
+            occurredAt: event.createdAt,
+            correlationId: event.correlationId,
+            payload: {
+              collectionId: event.aggregateId,
+              name: event.payload.name,
+              description: event.payload.description,
+              slug: event.payload.slug,
+              productIds: event.payload.productIds,
+            },
+          }),
+        ];
+      }
+
+      case "CollectionArchived": {
+        const event = domainEvent as CollectionArchivedEvent;
+        return [
+          new CollectionArchivedIntegrationEvent({
+            eventId: randomUUID(),
+            occurredAt: event.createdAt,
+            correlationId: event.correlationId,
+            payload: {
+              collectionId: event.aggregateId,
+            },
+          }),
+        ];
+      }
+
       // Internal events that don't produce integration events
       case "ProductVariantLinked":
+      case "ProductLinked":
       case "SkuIndexCreated":
       case "SkuReserved":
       case "SkuReleased":

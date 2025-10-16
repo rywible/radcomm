@@ -13,6 +13,11 @@ import {
   ProductVariantArchivedEvent,
 } from "../domain/productVariant/events";
 import {
+  CollectionCreatedEvent,
+  ProductLinkedEvent,
+  CollectionArchivedEvent,
+} from "../domain/collection/events";
+import {
   ProductCreatedIntegrationEvent,
   ProductArchivedIntegrationEvent,
 } from "../integrationEvents/product";
@@ -20,6 +25,10 @@ import {
   ProductVariantCreatedIntegrationEvent,
   ProductVariantArchivedIntegrationEvent,
 } from "../integrationEvents/productVariant";
+import {
+  CollectionCreatedIntegrationEvent,
+  CollectionArchivedIntegrationEvent,
+} from "../integrationEvents/collection";
 
 type TransactionalClient = Pick<TX, "insert" | "select" | "update" | "delete">;
 
@@ -136,8 +145,41 @@ export class EventRepository {
             committed: true,
           });
         case "ProductVariantArchived":
-          const payload = event.payload as { sku: string };
           return new ProductVariantArchivedEvent({
+            createdAt: event.createdAt,
+            aggregateId: event.aggregateId,
+            correlationId: event.correlationId,
+            version: event.version,
+            payload: {},
+            committed: true,
+          });
+        case "CollectionCreated":
+          return new CollectionCreatedEvent({
+            createdAt: event.createdAt,
+            aggregateId: event.aggregateId,
+            correlationId: event.correlationId,
+            version: event.version,
+            payload: event.payload as {
+              name: string;
+              description: string;
+              slug: string;
+              productIds: string[];
+            },
+            committed: true,
+          });
+        case "ProductLinked":
+          return new ProductLinkedEvent({
+            createdAt: event.createdAt,
+            aggregateId: event.aggregateId,
+            correlationId: event.correlationId,
+            version: event.version,
+            payload: event.payload as {
+              productId: string;
+            },
+            committed: true,
+          });
+        case "CollectionArchived":
+          return new CollectionArchivedEvent({
             createdAt: event.createdAt,
             aggregateId: event.aggregateId,
             correlationId: event.correlationId,
