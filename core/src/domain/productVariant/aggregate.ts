@@ -43,6 +43,7 @@ export class ProductVariantAggregate {
   private archived: boolean = false;
   public version: number = 0;
   public events: DomainEvent<string, Record<string, unknown>>[];
+  public uncommittedEvents: DomainEvent<string, Record<string, unknown>>[] = [];
 
   constructor({
     id,
@@ -115,7 +116,7 @@ export class ProductVariantAggregate {
       committed: false,
     });
 
-    productVariantAggregate.events.push(productVariantCreatedEvent);
+    productVariantAggregate.uncommittedEvents.push(productVariantCreatedEvent);
     return productVariantAggregate;
   }
 
@@ -127,16 +128,17 @@ export class ProductVariantAggregate {
     this.archived = true;
     this.version++;
 
-    this.events.push(
-      new ProductVariantArchivedEvent({
-        createdAt: new Date(),
-        correlationId: this.correlationId,
-        aggregateId: this.id,
-        version: this.version,
-        payload: {},
-        committed: false,
-      })
-    );
+    const event = new ProductVariantArchivedEvent({
+      createdAt: new Date(),
+      correlationId: this.correlationId,
+      aggregateId: this.id,
+      version: this.version,
+      payload: {
+        sku: this.sku,
+      },
+      committed: false,
+    });
+    this.uncommittedEvents.push(event);
   }
 
   apply(event: DomainEvent<string, Record<string, unknown>>) {

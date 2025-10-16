@@ -11,13 +11,16 @@ import {
 } from "@core/infrastructure/repositories";
 import { db } from "@core/infrastructure/postgres";
 import { tryCatch } from "../response";
+import { DomainEventMapper } from "@core/app/domainEventMapper";
 
 export const createProductVariant = async (
   command: CreateProductVariantCommand
 ) => {
+  const eventMapper = new DomainEventMapper();
   const unitOfWork = new UnitOfWork(db, EventRepository, OutboxRepository);
   const createProductVariantService = new CreateProductVariantService(
-    unitOfWork
+    unitOfWork,
+    eventMapper
   );
   return await tryCatch(
     async () => await createProductVariantService.execute(command)
@@ -27,9 +30,11 @@ export const createProductVariant = async (
 export const archiveProductVariant = async (
   command: ArchiveProductVariantCommand
 ) => {
+  const eventMapper = new DomainEventMapper();
   const unitOfWork = new UnitOfWork(db, EventRepository, OutboxRepository);
   const archiveProductVariantService = new ArchiveProductVariantService(
-    unitOfWork
+    unitOfWork,
+    eventMapper
   );
   return await tryCatch(
     async () => await archiveProductVariantService.execute(command)

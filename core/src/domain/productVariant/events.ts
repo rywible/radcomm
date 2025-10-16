@@ -51,7 +51,9 @@ export class ProductVariantCreatedEvent
   }
 }
 
-type ProductVariantArchivedEventPayload = Record<string, never>;
+type ProductVariantArchivedEventPayload = {
+  sku: string;
+};
 
 type ProductVariantArchivedEventType = DomainEvent<
   "ProductVariantArchived",

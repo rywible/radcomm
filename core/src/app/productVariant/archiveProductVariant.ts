@@ -2,14 +2,15 @@ import { UnitOfWork } from "../unitOfWork";
 import { ArchiveProductVariantCommand } from "./commands";
 import { ProductVariantAggregate } from "@core/domain/productVariant/aggregate";
 import { SkuIndexAggregate } from "@core/domain/skuIndex/aggregate";
-import { ProductVariantArchivedIntegrationEvent } from "@core/integration/events/productVariant";
-import { randomUUID } from "crypto";
+import { DomainEventMapper } from "../domainEventMapper";
 
 export class ArchiveProductVariantService {
   private unitOfWork: UnitOfWork;
+  private eventMapper: DomainEventMapper;
 
-  constructor(unitOfWork: UnitOfWork) {
+  constructor(unitOfWork: UnitOfWork, eventMapper: DomainEventMapper) {
     this.unitOfWork = unitOfWork;
+    this.eventMapper = eventMapper;
   }
 
   async execute(command: ArchiveProductVariantCommand) {
@@ -27,9 +28,12 @@ export class ArchiveProductVariantService {
         productVariantAggregate.archive();
 
         // Save product variant events
-        for (const event of productVariantAggregate.events) {
-          if (!event.committed) {
-            await eventRepository.add(event);
+        for (const event of productVariantAggregate.uncommittedEvents) {
+          await eventRepository.add(event);
+
+          const integrationEvents = this.eventMapper.toIntegrationEvents(event);
+          for (const integrationEvent of integrationEvents) {
+            await outboxRepository.add(integrationEvent);
           }
         }
 
@@ -45,24 +49,14 @@ export class ArchiveProductVariantService {
         skuIndexAggregate.release();
 
         // Save SKU index events
-        for (const event of skuIndexAggregate.events) {
-          if (!event.committed) {
-            await eventRepository.add(event);
+        for (const event of skuIndexAggregate.uncommittedEvents) {
+          await eventRepository.add(event);
+
+          const integrationEvents = this.eventMapper.toIntegrationEvents(event);
+          for (const integrationEvent of integrationEvents) {
+            await outboxRepository.add(integrationEvent);
           }
         }
-
-        // Publish integration event to outbox for external consumers
-        const integrationEvent = new ProductVariantArchivedIntegrationEvent({
-          eventId: randomUUID(),
-          occurredAt: new Date(),
-          correlationId: command.variantId,
-          payload: {
-            variantId: command.variantId,
-            sku,
-          },
-        });
-
-        await outboxRepository.add(integrationEvent);
       }
     );
   }

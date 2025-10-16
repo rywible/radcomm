@@ -41,6 +41,7 @@ export class ProductAggregate {
   private archived: boolean = false;
   public version: number = 0;
   public events: DomainEvent<string, Record<string, unknown>>[];
+  public uncommittedEvents: DomainEvent<string, Record<string, unknown>>[] = [];
 
   constructor({
     id,
@@ -102,20 +103,7 @@ export class ProductAggregate {
       payload: { title, description, slug, collectionIds, variantIds },
       committed: false,
     });
-    productAggregate.events.push(productCreatedEvent);
-    for (let i = 0; i < variantIds.length; i++) {
-      productAggregate.version++;
-      const variantId = variantIds[i]!;
-      const productVariantLinkedEvent = new ProductVariantLinkedEvent({
-        createdAt,
-        correlationId,
-        aggregateId: id,
-        version: productAggregate.version,
-        payload: { variantId },
-        committed: false,
-      });
-      productAggregate.events.push(productVariantLinkedEvent);
-    }
+    productAggregate.uncommittedEvents.push(productCreatedEvent);
     return productAggregate;
   }
 
@@ -135,22 +123,37 @@ export class ProductAggregate {
     this.events.push(event);
   }
 
+  // TODO: Implement when adding dynamic variant linking
+  // linkVariant(variantId: string) {
+  //   this.version++;
+  //   const event = new ProductVariantLinkedEvent({
+  //     createdAt: new Date(),
+  //     correlationId: this.correlationId,
+  //     aggregateId: this.id,
+  //     version: this.version,
+  //     payload: { variantId },
+  //     committed: false,
+  //   });
+  //   this.variantIds.push(variantId);
+  //   this.events.push(event);
+  //   this.uncommittedEvents.push(event);
+  // }
+
   archive() {
     if (this.archived) {
       throw new Error("Product is already archived");
     }
     this.archived = true;
     this.version++;
-    this.events.push(
-      new ProductArchivedEvent({
-        createdAt: new Date(),
-        correlationId: this.correlationId,
-        aggregateId: this.id,
-        version: this.version,
-        payload: {},
-        committed: false,
-      })
-    );
+    const event = new ProductArchivedEvent({
+      createdAt: new Date(),
+      correlationId: this.correlationId,
+      aggregateId: this.id,
+      version: this.version,
+      payload: {},
+      committed: false,
+    });
+    this.uncommittedEvents.push(event);
   }
 
   static loadFromHistory(

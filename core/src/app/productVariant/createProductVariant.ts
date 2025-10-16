@@ -2,14 +2,15 @@ import { UnitOfWork } from "../unitOfWork";
 import { CreateProductVariantCommand } from "./commands";
 import { ProductVariantAggregate } from "@core/domain/productVariant/aggregate";
 import { SkuIndexAggregate } from "@core/domain/skuIndex/aggregate";
-import { ProductVariantCreatedIntegrationEvent } from "@core/integration/events/productVariant";
-import { randomUUID } from "crypto";
+import { DomainEventMapper } from "../domainEventMapper";
 
 export class CreateProductVariantService {
   private unitOfWork: UnitOfWork;
+  private eventMapper: DomainEventMapper;
 
-  constructor(unitOfWork: UnitOfWork) {
+  constructor(unitOfWork: UnitOfWork, eventMapper: DomainEventMapper) {
     this.unitOfWork = unitOfWork;
+    this.eventMapper = eventMapper;
   }
 
   async execute(command: CreateProductVariantCommand) {
@@ -40,9 +41,12 @@ export class CreateProductVariantService {
         }
 
         // Save SKU index events
-        for (const event of skuIndexAggregate.events) {
-          if (!event.committed) {
-            await eventRepository.add(event);
+        for (const event of skuIndexAggregate.uncommittedEvents) {
+          await eventRepository.add(event);
+
+          const integrationEvents = this.eventMapper.toIntegrationEvents(event);
+          for (const integrationEvent of integrationEvents) {
+            await outboxRepository.add(integrationEvent);
           }
         }
 
@@ -60,31 +64,14 @@ export class CreateProductVariantService {
         });
 
         // Save product variant events
-        for (const event of productVariantAggregate.events) {
-          if (!event.committed) {
-            await eventRepository.add(event);
+        for (const event of productVariantAggregate.uncommittedEvents) {
+          await eventRepository.add(event);
+
+          const integrationEvents = this.eventMapper.toIntegrationEvents(event);
+          for (const integrationEvent of integrationEvents) {
+            await outboxRepository.add(integrationEvent);
           }
         }
-
-        // Publish integration event to outbox for external consumers
-        const integrationEvent = new ProductVariantCreatedIntegrationEvent({
-          eventId: randomUUID(),
-          occurredAt: command.createdAt,
-          correlationId: command.productId,
-          payload: {
-            variantId: command.variantId,
-            productId: command.productId,
-            sku: command.sku,
-            priceUsd: (command.priceCents / 100).toFixed(2),
-            imageUrl: command.imageUrl,
-            attributes: {
-              size: command.size,
-              color: command.color,
-            },
-          },
-        });
-
-        await outboxRepository.add(integrationEvent);
       }
     );
   }

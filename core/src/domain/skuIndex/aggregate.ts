@@ -27,6 +27,7 @@ export class SkuIndexAggregate {
   private reserved: boolean = false;
   public version: number = 0;
   public events: DomainEvent<string, Record<string, unknown>>[];
+  public uncommittedEvents: DomainEvent<string, Record<string, unknown>>[] = [];
 
   constructor({
     id,
@@ -67,7 +68,7 @@ export class SkuIndexAggregate {
       committed: false,
     });
 
-    skuIndexAggregate.events.push(skuIndexCreatedEvent);
+    skuIndexAggregate.uncommittedEvents.push(skuIndexCreatedEvent);
     return skuIndexAggregate;
   }
 
@@ -79,16 +80,15 @@ export class SkuIndexAggregate {
     this.reserved = true;
     this.version++;
 
-    this.events.push(
-      new SkuReservedEvent({
-        createdAt: new Date(),
-        correlationId: this.correlationId,
-        aggregateId: this.id,
-        version: this.version,
-        payload: {},
-        committed: false,
-      })
-    );
+    const event = new SkuReservedEvent({
+      createdAt: new Date(),
+      correlationId: this.correlationId,
+      aggregateId: this.id,
+      version: this.version,
+      payload: {},
+      committed: false,
+    });
+    this.uncommittedEvents.push(event);
   }
 
   release() {
@@ -99,16 +99,15 @@ export class SkuIndexAggregate {
     this.reserved = false;
     this.version++;
 
-    this.events.push(
-      new SkuReleasedEvent({
-        createdAt: new Date(),
-        correlationId: this.correlationId,
-        aggregateId: this.id,
-        version: this.version,
-        payload: {},
-        committed: false,
-      })
-    );
+    const event = new SkuReleasedEvent({
+      createdAt: new Date(),
+      correlationId: this.correlationId,
+      aggregateId: this.id,
+      version: this.version,
+      payload: {},
+      committed: false,
+    });
+    this.uncommittedEvents.push(event);
   }
 
   apply(event: DomainEvent<string, Record<string, unknown>>) {
