@@ -11,6 +11,4 @@ const EnvSchema = z.object({
     .default("development"),
 });
 
-console.log("Environment Variables:", process.env);
-
 export const env = EnvSchema.parse(process.env);
