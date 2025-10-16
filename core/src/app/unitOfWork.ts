@@ -1,4 +1,7 @@
-import { EventRepository } from "../infrastructure/repository";
+import {
+  EventRepository,
+  OutboxRepository,
+} from "../infrastructure/repositories";
 import type { DB, TX } from "../infrastructure/postgres";
 
 type TransactionalDb = Pick<DB, "transaction">;
@@ -6,21 +9,28 @@ type TransactionalDb = Pick<DB, "transaction">;
 export class UnitOfWork {
   private db: TransactionalDb;
   private eventRepositoryFactory: typeof EventRepository;
+  private outboxRepositoryFactory: typeof OutboxRepository;
 
   constructor(
     db: TransactionalDb,
-    eventRepositoryFactory: typeof EventRepository
+    eventRepositoryFactory: typeof EventRepository,
+    outboxRepositoryFactory: typeof OutboxRepository
   ) {
     this.db = db;
     this.eventRepositoryFactory = eventRepositoryFactory;
+    this.outboxRepositoryFactory = outboxRepositoryFactory;
   }
 
   async withTransaction<T>(
-    work: (context: { eventRepository: EventRepository }) => Promise<T>
+    work: (context: {
+      eventRepository: EventRepository;
+      outboxRepository: OutboxRepository;
+    }) => Promise<T>
   ): Promise<T> {
     return this.db.transaction(async (tx) => {
       const eventRepository = new this.eventRepositoryFactory(tx);
-      const result = await work({ eventRepository });
+      const outboxRepository = new this.outboxRepositoryFactory(tx);
+      const result = await work({ eventRepository, outboxRepository });
       return result;
     });
   }

@@ -1,18 +1,27 @@
 import type { DomainEvent } from "../domain/_base/domainEvent";
-import { EventsTable } from "./orm";
+import type { IntegrationEvent } from "../integration/events/_base";
+import { EventsTable, OutboxTable } from "./orm";
 import { eq, asc } from "drizzle-orm";
 import type { TX } from "./postgres";
 import {
   ProductCreatedEvent,
   ProductVariantLinkedEvent,
-  ProductDeletedEvent,
+  ProductArchivedEvent,
 } from "../domain/product/events";
 import {
   ProductVariantCreatedEvent,
-  ProductVariantDeletedEvent,
+  ProductVariantArchivedEvent,
 } from "../domain/productVariant/events";
+import {
+  ProductCreatedIntegrationEvent,
+  ProductArchivedIntegrationEvent,
+} from "../integration/events/product";
+import {
+  ProductVariantCreatedIntegrationEvent,
+  ProductVariantArchivedIntegrationEvent,
+} from "../integration/events/productVariant";
 
-type TransactionalClient = Pick<TX, "insert" | "select">;
+type TransactionalClient = Pick<TX, "insert" | "select" | "update" | "delete">;
 
 const UNIQUE_VIOLATION_ERROR_CODE = "23505";
 
@@ -100,8 +109,8 @@ export class EventRepository {
             },
             committed: true,
           });
-        case "ProductDeleted":
-          return new ProductDeletedEvent({
+        case "ProductArchived":
+          return new ProductArchivedEvent({
             createdAt: event.createdAt,
             aggregateId: event.aggregateId,
             correlationId: event.correlationId,
@@ -126,8 +135,8 @@ export class EventRepository {
             },
             committed: true,
           });
-        case "ProductVariantDeleted":
-          return new ProductVariantDeletedEvent({
+        case "ProductVariantArchived":
+          return new ProductVariantArchivedEvent({
             createdAt: event.createdAt,
             aggregateId: event.aggregateId,
             correlationId: event.correlationId,
@@ -139,5 +148,25 @@ export class EventRepository {
           throw new Error(`Unknown event type: ${event.eventName}`);
       }
     });
+  }
+}
+
+export class OutboxRepository {
+  private db: TransactionalClient;
+
+  constructor(db: TransactionalClient) {
+    this.db = db;
+  }
+
+  async add(
+    integrationEvent: IntegrationEvent<string, Record<string, unknown>>
+  ): Promise<void> {
+    const outboxMessage: typeof OutboxTable.$inferInsert = {
+      id: integrationEvent.eventId,
+      createdAt: integrationEvent.occurredAt,
+      event: integrationEvent,
+    };
+
+    await this.db.insert(OutboxTable).values(outboxMessage);
   }
 }

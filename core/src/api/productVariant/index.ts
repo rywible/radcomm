@@ -5,14 +5,17 @@ import {
   ArchiveProductVariantCommand,
 } from "@core/app/productVariant/commands";
 import { UnitOfWork } from "@core/app/unitOfWork";
-import { EventRepository } from "@core/infrastructure/repository";
+import {
+  EventRepository,
+  OutboxRepository,
+} from "@core/infrastructure/repositories";
 import { db } from "@core/infrastructure/postgres";
 import { tryCatch } from "../response";
 
 export const createProductVariant = async (
   command: CreateProductVariantCommand
 ) => {
-  const unitOfWork = new UnitOfWork(db, EventRepository);
+  const unitOfWork = new UnitOfWork(db, EventRepository, OutboxRepository);
   const createProductVariantService = new CreateProductVariantService(
     unitOfWork
   );
@@ -24,7 +27,7 @@ export const createProductVariant = async (
 export const archiveProductVariant = async (
   command: ArchiveProductVariantCommand
 ) => {
-  const unitOfWork = new UnitOfWork(db, EventRepository);
+  const unitOfWork = new UnitOfWork(db, EventRepository, OutboxRepository);
   const archiveProductVariantService = new ArchiveProductVariantService(
     unitOfWork
   );

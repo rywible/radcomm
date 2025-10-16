@@ -20,3 +20,9 @@ export const EventsTable = pgTable(
   },
   (table) => [primaryKey({ columns: [table.aggregateId, table.version] })]
 );
+
+export const OutboxTable = pgTable("outbox", {
+  id: uuid("id").primaryKey(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  event: jsonb("event").notNull(),
+});
