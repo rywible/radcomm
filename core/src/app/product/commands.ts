@@ -1,15 +1,5 @@
 import { z } from "zod";
 
-const ProductVariantSchema = z.object({
-  id: z.string(),
-  sku: z.string(),
-  priceCents: z.number().int().positive(),
-  imageUrl: z.url(),
-  size: z.string(),
-  color: z.string(),
-  quantity: z.number().int().nonnegative(),
-});
-
 export const CreateProductCommand = z.object({
   productId: z.string(),
   correlationId: z.string(),
@@ -18,13 +8,13 @@ export const CreateProductCommand = z.object({
   description: z.string(),
   slug: z.string().min(1),
   collectionIds: z.array(z.string()),
-  variants: z.array(ProductVariantSchema),
+  variantIds: z.array(z.string()),
 });
 
 export type CreateProductCommand = z.infer<typeof CreateProductCommand>;
 
-export const DeleteProductCommand = z.object({
+export const ArchiveProductCommand = z.object({
   productId: z.string(),
 });
 
-export type DeleteProductCommand = z.infer<typeof DeleteProductCommand>;
+export type ArchiveProductCommand = z.infer<typeof ArchiveProductCommand>;

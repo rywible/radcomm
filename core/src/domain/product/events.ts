@@ -1,12 +1,11 @@
 import type { DomainEvent } from "../_base/domainEvent";
-import { ProductVariant } from "./entities";
 
 type ProductCreatedEventPayload = {
   title: string;
   description: string;
   slug: string;
   collectionIds: string[];
-  variants: ProductVariant[];
+  variantIds: string[];
 };
 
 type ProductCreatedEventType = DomainEvent<
@@ -49,31 +48,33 @@ export class ProductCreatedEvent implements ProductCreatedEventType {
   }
 }
 
-type ProductVariantAddedEventPayload = {
-  variant: ProductVariant;
+type ProductVariantLinkedEventPayload = {
+  variantId: string;
 };
 
-type ProductVariantAddedEventType = DomainEvent<
-  "ProductVariantAdded",
-  ProductVariantAddedEventPayload
+type ProductVariantLinkedEventType = DomainEvent<
+  "ProductVariantLinked",
+  ProductVariantLinkedEventPayload
 >;
 
-type ProductVariantAddedEventParams = {
+type ProductVariantLinkedEventParams = {
   createdAt: Date;
   aggregateId: string;
   correlationId: string;
   version: number;
-  payload: ProductVariantAddedEventPayload;
+  payload: ProductVariantLinkedEventPayload;
   committed: boolean;
 };
 
-export class ProductVariantAddedEvent implements ProductVariantAddedEventType {
+export class ProductVariantLinkedEvent
+  implements ProductVariantLinkedEventType
+{
   createdAt: Date;
-  eventName = "ProductVariantAdded" as const;
+  eventName = "ProductVariantLinked" as const;
   correlationId: string;
   aggregateId: string;
   version: number;
-  payload: ProductVariantAddedEventPayload;
+  payload: ProductVariantLinkedEventPayload;
   committed: boolean;
 
   constructor({
@@ -83,7 +84,7 @@ export class ProductVariantAddedEvent implements ProductVariantAddedEventType {
     version,
     payload,
     committed,
-  }: ProductVariantAddedEventParams) {
+  }: ProductVariantLinkedEventParams) {
     this.createdAt = createdAt;
     this.correlationId = correlationId;
     this.aggregateId = aggregateId;
@@ -93,29 +94,29 @@ export class ProductVariantAddedEvent implements ProductVariantAddedEventType {
   }
 }
 
-type ProductDeletedEventPayload = Record<string, never>;
+type ProductArchivedEventPayload = Record<string, never>;
 
-type ProductDeletedEventType = DomainEvent<
-  "ProductDeleted",
-  ProductDeletedEventPayload
+type ProductArchivedEventType = DomainEvent<
+  "ProductArchived",
+  ProductArchivedEventPayload
 >;
 
-type ProductDeletedEventParams = {
+type ProductArchivedEventParams = {
   createdAt: Date;
   aggregateId: string;
   correlationId: string;
   version: number;
-  payload: ProductDeletedEventPayload;
+  payload: ProductArchivedEventPayload;
   committed: boolean;
 };
 
-export class ProductDeletedEvent implements ProductDeletedEventType {
+export class ProductArchivedEvent implements ProductArchivedEventType {
   createdAt: Date;
-  eventName = "ProductDeleted" as const;
+  eventName = "ProductArchived" as const;
   correlationId: string;
   aggregateId: string;
   version: number;
-  payload: ProductDeletedEventPayload;
+  payload: ProductArchivedEventPayload;
   committed: boolean;
 
   constructor({
@@ -125,7 +126,7 @@ export class ProductDeletedEvent implements ProductDeletedEventType {
     version,
     payload,
     committed,
-  }: ProductDeletedEventParams) {
+  }: ProductArchivedEventParams) {
     this.createdAt = createdAt;
     this.correlationId = correlationId;
     this.aggregateId = aggregateId;

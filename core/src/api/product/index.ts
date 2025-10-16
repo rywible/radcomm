@@ -1,8 +1,8 @@
 import { CreateProductService } from "@core/app/product/createProduct";
-import { DeleteProductService } from "@core/app/product/deleteProduct";
+import { ArchiveProductService } from "@core/app/product/archiveProduct";
 import {
   CreateProductCommand,
-  DeleteProductCommand,
+  ArchiveProductCommand,
 } from "@core/app/product/commands";
 import { UnitOfWork } from "@core/app/unitOfWork";
 import { EventRepository } from "@core/infrastructure/repository";
@@ -17,10 +17,10 @@ export const createProduct = async (command: CreateProductCommand) => {
   );
 };
 
-export const deleteProduct = async (command: DeleteProductCommand) => {
+export const archiveProduct = async (command: ArchiveProductCommand) => {
   const unitOfWork = new UnitOfWork(db, EventRepository);
-  const deleteProductService = new DeleteProductService(unitOfWork);
+  const archiveProductService = new ArchiveProductService(unitOfWork);
   return await tryCatch(
-    async () => await deleteProductService.execute(command)
+    async () => await archiveProductService.execute(command)
   );
 };

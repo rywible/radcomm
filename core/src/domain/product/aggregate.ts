@@ -1,9 +1,8 @@
-import { ProductVariant } from "./entities";
 import type { DomainEvent } from "../_base/domainEvent";
 import {
   ProductCreatedEvent,
-  ProductVariantAddedEvent,
-  ProductDeletedEvent,
+  ProductVariantLinkedEvent,
+  ProductArchivedEvent,
 } from "./events";
 
 type ProductAggregateParams = {
@@ -14,7 +13,7 @@ type ProductAggregateParams = {
   description: string;
   slug: string;
   collectionIds: string[];
-  variants: ProductVariant[];
+  variantIds: string[];
   version: number;
   events: DomainEvent<string, Record<string, unknown>>[];
 };
@@ -27,7 +26,7 @@ type CreateProductAggregateParams = {
   description: string;
   slug: string;
   collectionIds: string[];
-  variants: ProductVariant[];
+  variantIds: string[];
 };
 
 export class ProductAggregate {
@@ -38,8 +37,8 @@ export class ProductAggregate {
   private description: string;
   private slug: string;
   private collectionIds: string[];
-  private variants: ProductVariant[];
-  private deleted: boolean = false;
+  private variantIds: string[];
+  private archived: boolean = false;
   public version: number = 0;
   public events: DomainEvent<string, Record<string, unknown>>[];
 
@@ -51,7 +50,7 @@ export class ProductAggregate {
     description,
     slug,
     collectionIds,
-    variants,
+    variantIds,
     version = 0,
     events,
   }: ProductAggregateParams) {
@@ -62,7 +61,7 @@ export class ProductAggregate {
     this.description = description;
     this.slug = slug;
     this.collectionIds = collectionIds;
-    this.variants = variants;
+    this.variantIds = variantIds;
     this.version = version;
     this.events = events;
   }
@@ -75,9 +74,9 @@ export class ProductAggregate {
     description,
     slug,
     collectionIds,
-    variants,
+    variantIds,
   }: CreateProductAggregateParams) {
-    if (variants.length === 0) {
+    if (variantIds.length === 0) {
       throw new Error("Product must have at least one variant");
     }
     if (collectionIds.length === 0) {
@@ -91,7 +90,7 @@ export class ProductAggregate {
       description,
       slug,
       collectionIds,
-      variants,
+      variantIds,
       version: 0,
       events: [],
     });
@@ -100,34 +99,34 @@ export class ProductAggregate {
       correlationId,
       aggregateId: id,
       version: 0,
-      payload: { title, description, slug, collectionIds, variants },
+      payload: { title, description, slug, collectionIds, variantIds },
       committed: false,
     });
     productAggregate.events.push(productCreatedEvent);
-    for (let i = 0; i < variants.length; i++) {
+    for (let i = 0; i < variantIds.length; i++) {
       productAggregate.version++;
-      const variant = variants[i]!;
-      const productVariantAddedEvent = new ProductVariantAddedEvent({
+      const variantId = variantIds[i]!;
+      const productVariantLinkedEvent = new ProductVariantLinkedEvent({
         createdAt,
         correlationId,
         aggregateId: id,
         version: productAggregate.version,
-        payload: { variant },
+        payload: { variantId },
         committed: false,
       });
-      productAggregate.events.push(productVariantAddedEvent);
+      productAggregate.events.push(productVariantLinkedEvent);
     }
     return productAggregate;
   }
 
   apply(event: DomainEvent<string, Record<string, unknown>>) {
     switch (event.eventName) {
-      case "ProductVariantAdded":
-        const productVariantAddedEvent = event as ProductVariantAddedEvent;
-        this.variants.push(productVariantAddedEvent.payload.variant);
+      case "ProductVariantLinked":
+        const productVariantLinkedEvent = event as ProductVariantLinkedEvent;
+        this.variantIds.push(productVariantLinkedEvent.payload.variantId);
         break;
-      case "ProductDeleted":
-        this.deleted = true;
+      case "ProductArchived":
+        this.archived = true;
         break;
       default:
         throw new Error(`Unknown event type: ${event.eventName}`);
@@ -136,14 +135,14 @@ export class ProductAggregate {
     this.events.push(event);
   }
 
-  delete() {
-    if (this.deleted) {
-      throw new Error("Product is already deleted");
+  archive() {
+    if (this.archived) {
+      throw new Error("Product is already archived");
     }
-    this.deleted = true;
+    this.archived = true;
     this.version++;
     this.events.push(
-      new ProductDeletedEvent({
+      new ProductArchivedEvent({
         createdAt: new Date(),
         correlationId: this.correlationId,
         aggregateId: this.id,
@@ -174,7 +173,7 @@ export class ProductAggregate {
       description: firstEvent.payload.description,
       slug: firstEvent.payload.slug,
       collectionIds: firstEvent.payload.collectionIds,
-      variants: [],
+      variantIds: [],
       version: 0,
       events: [firstEvent],
     });
@@ -184,5 +183,33 @@ export class ProductAggregate {
     }
 
     return productAggregate;
+  }
+
+  getId() {
+    return this.id;
+  }
+
+  getVariantIds() {
+    return this.variantIds;
+  }
+
+  getTitle() {
+    return this.title;
+  }
+
+  getDescription() {
+    return this.description;
+  }
+
+  getSlug() {
+    return this.slug;
+  }
+
+  getCollectionIds() {
+    return this.collectionIds;
+  }
+
+  isArchived() {
+    return this.archived;
   }
 }

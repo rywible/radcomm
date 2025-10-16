@@ -19,7 +19,7 @@ export class CreateProductService {
         description: command.description,
         slug: command.slug,
         collectionIds: command.collectionIds,
-        variants: command.variants,
+        variantIds: command.variantIds,
       });
       for (const event of productAggregate.events) {
         if (!event.committed) {

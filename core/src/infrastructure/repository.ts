@@ -4,10 +4,13 @@ import { eq, asc } from "drizzle-orm";
 import type { TX } from "./postgres";
 import {
   ProductCreatedEvent,
-  ProductVariantAddedEvent,
+  ProductVariantLinkedEvent,
   ProductDeletedEvent,
 } from "../domain/product/events";
-import type { ProductVariant } from "../domain/product/entities";
+import {
+  ProductVariantCreatedEvent,
+  ProductVariantDeletedEvent,
+} from "../domain/productVariant/events";
 
 type TransactionalClient = Pick<TX, "insert" | "select">;
 
@@ -82,23 +85,49 @@ export class EventRepository {
               description: string;
               slug: string;
               collectionIds: string[];
-              variants: ProductVariant[];
+              variantIds: string[];
             },
             committed: true,
           });
-        case "ProductVariantAdded":
-          return new ProductVariantAddedEvent({
+        case "ProductVariantLinked":
+          return new ProductVariantLinkedEvent({
             createdAt: event.createdAt,
             aggregateId: event.aggregateId,
             correlationId: event.correlationId,
             version: event.version,
             payload: event.payload as {
-              variant: ProductVariant;
+              variantId: string;
             },
             committed: true,
           });
         case "ProductDeleted":
           return new ProductDeletedEvent({
+            createdAt: event.createdAt,
+            aggregateId: event.aggregateId,
+            correlationId: event.correlationId,
+            version: event.version,
+            payload: {},
+            committed: true,
+          });
+        case "ProductVariantCreated":
+          return new ProductVariantCreatedEvent({
+            createdAt: event.createdAt,
+            aggregateId: event.aggregateId,
+            correlationId: event.correlationId,
+            version: event.version,
+            payload: event.payload as {
+              productId: string;
+              sku: string;
+              priceCents: number;
+              imageUrl: string;
+              size: string;
+              color: string;
+              quantity: number;
+            },
+            committed: true,
+          });
+        case "ProductVariantDeleted":
+          return new ProductVariantDeletedEvent({
             createdAt: event.createdAt,
             aggregateId: event.aggregateId,
             correlationId: event.correlationId,
