@@ -8,7 +8,8 @@
     "paths": {
       "@core/*": ["core/src/*"],
       "@storefront/*": ["storefront/src/*"],
-      "@ui/*": ["ui/*"]
+      "@ui/*": ["ui/*"],
+      "@worker/*": ["worker/*"]
     },
     "types": ["node"]
   }
