@@ -14,15 +14,20 @@ import { eq, sql } from "drizzle-orm";
 type TransactionalClient = Pick<TX, "insert" | "select" | "update" | "delete">;
 
 export class ProductProjection {
+  private db: TransactionalClient;
+
+  constructor(db: TransactionalClient) {
+    this.db = db;
+  }
+
   async handleProductCreated(
-    event: ProductCreatedIntegrationEvent,
-    tx: TransactionalClient
+    event: ProductCreatedIntegrationEvent
   ): Promise<void> {
     const { productId, title, slug, description, collectionIds } =
       event.payload;
 
     // Fetch collection data for the collections JSONB array
-    const collections = await tx
+    const collections = await this.db
       .select({
         id: CollectionListViewTable.collectionId,
         name: CollectionListViewTable.name,
@@ -34,7 +39,7 @@ export class ProductProjection {
       );
 
     // Insert into product_list_view
-    await tx.insert(ProductListViewTable).values({
+    await this.db.insert(ProductListViewTable).values({
       productId,
       title,
       slug,
@@ -47,13 +52,13 @@ export class ProductProjection {
 
     // Insert into collection_detail_view for each collection
     for (const collectionId of collectionIds) {
-      const collection = await tx
+      const collection = await this.db
         .select()
         .from(CollectionListViewTable)
         .where(eq(CollectionListViewTable.collectionId, collectionId));
 
       if (collection[0]) {
-        await tx.insert(CollectionDetailViewTable).values({
+        await this.db.insert(CollectionDetailViewTable).values({
           collectionId,
           productId,
           collectionName: collection[0].name,
@@ -71,25 +76,24 @@ export class ProductProjection {
   }
 
   async handleProductArchived(
-    event: ProductArchivedIntegrationEvent,
-    tx: TransactionalClient
+    event: ProductArchivedIntegrationEvent
   ): Promise<void> {
     const { productId } = event.payload;
 
     // Update product_list_view
-    await tx
+    await this.db
       .update(ProductListViewTable)
       .set({ status: "archived" })
       .where(eq(ProductListViewTable.productId, productId));
 
     // Update product_detail_view
-    await tx
+    await this.db
       .update(ProductDetailViewTable)
       .set({ productStatus: "archived" })
       .where(eq(ProductDetailViewTable.productId, productId));
 
     // Update collection_detail_view
-    await tx
+    await this.db
       .update(CollectionDetailViewTable)
       .set({ productStatus: "archived" })
       .where(eq(CollectionDetailViewTable.productId, productId));

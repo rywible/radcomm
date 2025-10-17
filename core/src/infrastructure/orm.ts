@@ -6,6 +6,7 @@ import {
   uuid,
   varchar,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const EventsTable = pgTable(
@@ -20,6 +21,44 @@ export const EventsTable = pgTable(
   },
   (table) => [primaryKey({ columns: [table.aggregateId, table.version] })]
 );
+
+// Outbox for integration events
+export const OutboxTable = pgTable(
+  "outbox",
+  {
+    id: uuid("id").primaryKey(),
+    status: varchar("status", { length: 50 }).notNull(),
+    leasedAt: timestamp("leased_at", { withTimezone: true }),
+    nextAvailableAt: timestamp("next_available_at", { withTimezone: true }),
+    attempts: integer("attempts").notNull(),
+    event: jsonb("event").notNull(),
+  },
+  (table) => [
+    // Primary scheduling index for batch selection
+    index("idx_outbox_scheduling").on(
+      table.status,
+      table.nextAvailableAt,
+      table.id
+    ),
+    // Index for stale lease detection
+    index("idx_outbox_stale_leases").on(table.status, table.leasedAt),
+    // Index for status-only queries
+    index("idx_outbox_status").on(table.status),
+    // Index for attempts-based queries (monitoring)
+    index("idx_outbox_attempts").on(table.attempts),
+  ]
+);
+
+export const OutboxDeadLetterTable = pgTable("outbox_dead_letter", {
+  id: uuid("id").primaryKey(),
+  failedAt: timestamp("failed_at", { withTimezone: true }).notNull(),
+  event: jsonb("event").notNull(),
+  lastError: varchar("last_error", { length: 255 }).notNull(),
+});
+
+export const InboxTable = pgTable("inbox", {
+  id: uuid("id").primaryKey(),
+});
 
 // Read Models
 export const ProductListViewTable = pgTable("product_list_view", {

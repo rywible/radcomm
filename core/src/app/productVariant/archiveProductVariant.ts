@@ -1,4 +1,4 @@
-import { UnitOfWork } from "../unitOfWork";
+import { UnitOfWork } from "../../infrastructure/unitOfWork";
 import { ArchiveProductVariantCommand } from "./commands";
 import { ProductVariantAggregate } from "@core/domain/productVariant/aggregate";
 import { SkuIndexAggregate } from "@core/domain/skuIndex/aggregate";

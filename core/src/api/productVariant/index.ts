@@ -4,7 +4,7 @@ import {
   CreateProductVariantCommand,
   ArchiveProductVariantCommand,
 } from "@core/app/productVariant/commands";
-import { UnitOfWork } from "@core/app/unitOfWork";
+import { UnitOfWork } from "@core/infrastructure/unitOfWork";
 import {
   EventRepository,
   OutboxRepository,

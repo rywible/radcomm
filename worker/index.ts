@@ -1,66 +1,55 @@
-import { OutboxPoller } from "@core/infrastructure/outboxPoller";
-import { db } from "@core/infrastructure/postgres";
-import type { IntegrationEvent } from "@core/integrationEvents/_base";
+import { OutboxPoller } from "../core/src/infrastructure/outboxPoller";
+import { db } from "../core/src/infrastructure/postgres";
+import { ProjectionHandler } from "../core/src/views/projections/projectionHandler";
+import { ProductProjection } from "../core/src/views/projections/productProjection";
+import { ProductVariantProjection } from "../core/src/views/projections/productVariantProjection";
+import { CollectionProjection } from "../core/src/views/projections/collectionProjection";
+import { ExternalEffectHandler } from "../core/src/infrastructure/externalEffectHandler";
 
-// Example handler that processes integration events
-async function handleIntegrationEvent(
-  event: IntegrationEvent<string, Record<string, unknown>>
-): Promise<void> {
-  console.log(`Processing event: ${event.eventName}`, {
-    eventId: event.eventId,
-    correlationId: event.correlationId,
-    occurredAt: event.occurredAt,
-  });
+// Initialize handlers
+const projectionHandler = new ProjectionHandler({
+  db,
+  productProjectionFactory: ProductProjection,
+  productVariantProjectionFactory: ProductVariantProjection,
+  collectionProjectionFactory: CollectionProjection,
+});
+const externalEffectHandler = new ExternalEffectHandler();
 
-  // TODO: Implement actual event processing logic here
-  // This could include:
-  // - Publishing to a message broker (RabbitMQ, Kafka, etc.)
-  // - Calling external APIs
-  // - Updating other systems
-  // - Triggering webhooks
-
-  // For now, just log the event
-  console.log("Event payload:", event.payload);
-}
-
-// Create and start the outbox poller
-const poller = new OutboxPoller(db, {
-  batchSize: 1000,
-  pollIntervalMs: 20, // Poll every 20ms for low latency
-  errorHandler: async (error, message) => {
-    console.error(
-      `Failed to process outbox message ${message.id}:`,
-      error.message
-    );
-    console.error("Event details:", {
-      eventName: message.event.eventName,
-      eventId: message.event.eventId,
-      correlationId: message.event.correlationId,
-    });
-    // TODO: Implement error handling strategy
-    // - Send to dead letter queue
-    // - Alert monitoring system
-    // - Retry with exponential backoff
-  },
+// Create the outbox poller
+const poller = new OutboxPoller({
+  db,
+  projectionHandler,
+  externalEffectHandler,
+  leaseBatchSize: 100, // Lease up to 100 messages at a time
+  processBatchSize: 10, // Process 10 messages in parallel
+  maxAttempts: 6, // Maximum retry attempts before dead letter queue
 });
 
 // Handle graceful shutdown
-process.on("SIGINT", () => {
-  console.log("Received SIGINT, shutting down gracefully...");
-  poller.stop();
+async function gracefulShutdown(signal: string) {
+  console.log(`Received ${signal}, initiating graceful shutdown...`);
+  await poller.shutdown();
+  console.log("Shutdown complete");
   process.exit(0);
+}
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+
+// Handle uncaught errors
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+  gracefulShutdown("uncaughtException");
 });
 
-process.on("SIGTERM", () => {
-  console.log("Received SIGTERM, shutting down gracefully...");
-  poller.stop();
-  process.exit(0);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled rejection at:", promise, "reason:", reason);
+  gracefulShutdown("unhandledRejection");
 });
 
 // Start the poller
-poller.start(handleIntegrationEvent).catch((error) => {
+console.log("Starting outbox worker...");
+poller.poll().catch((error) => {
   console.error("Fatal error in outbox poller:", error);
   process.exit(1);
 });
-
-console.log("Outbox worker started");

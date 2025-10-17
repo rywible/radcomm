@@ -7,7 +7,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "storefront:dev": "cd storefront && pnpm dev --host 0.0.0.0",
     "drizzle:push": "docker compose up -d postgres && cd core && npx drizzle-kit push"
   },

@@ -13,16 +13,21 @@ import { eq, and, sql } from "drizzle-orm";
 type TransactionalClient = Pick<TX, "insert" | "select" | "update" | "delete">;
 
 export class ProductVariantProjection {
+  private db: TransactionalClient;
+
+  constructor(db: TransactionalClient) {
+    this.db = db;
+  }
+
   async handleProductVariantCreated(
-    event: ProductVariantCreatedIntegrationEvent,
-    tx: TransactionalClient
+    event: ProductVariantCreatedIntegrationEvent
   ): Promise<void> {
     const { variantId, productId, sku, priceUsd, imageUrl, attributes } =
       event.payload;
     const priceCents = Math.round(parseFloat(priceUsd) * 100);
 
     // Fetch product info from product_list_view
-    const product = await tx
+    const product = await this.db
       .select()
       .from(ProductListViewTable)
       .where(eq(ProductListViewTable.productId, productId));
@@ -32,7 +37,7 @@ export class ProductVariantProjection {
     }
 
     // Insert into product_detail_view
-    await tx.insert(ProductDetailViewTable).values({
+    await this.db.insert(ProductDetailViewTable).values({
       variantId,
       productId,
       productTitle: product[0].title,
@@ -49,7 +54,7 @@ export class ProductVariantProjection {
     });
 
     // Update product_list_view: increment variant_count
-    await tx
+    await this.db
       .update(ProductListViewTable)
       .set({
         variantCount: sql`${ProductListViewTable.variantCount} + 1`,
@@ -57,7 +62,7 @@ export class ProductVariantProjection {
       .where(eq(ProductListViewTable.productId, productId));
 
     // Update collection_detail_view: recalculate variant_count
-    const activeVariantCount = await tx
+    const activeVariantCount = await this.db
       .select({ count: sql<number>`count(*)::int` })
       .from(ProductDetailViewTable)
       .where(
@@ -67,7 +72,7 @@ export class ProductVariantProjection {
         )
       );
 
-    await tx
+    await this.db
       .update(CollectionDetailViewTable)
       .set({
         variantCount: activeVariantCount[0]?.count ?? 0,
@@ -76,13 +81,12 @@ export class ProductVariantProjection {
   }
 
   async handleProductVariantArchived(
-    event: ProductVariantArchivedIntegrationEvent,
-    tx: TransactionalClient
+    event: ProductVariantArchivedIntegrationEvent
   ): Promise<void> {
     const { variantId } = event.payload;
 
     // Get the product ID before updating
-    const variant = await tx
+    const variant = await this.db
       .select({ productId: ProductDetailViewTable.productId })
       .from(ProductDetailViewTable)
       .where(eq(ProductDetailViewTable.variantId, variantId));
@@ -94,13 +98,13 @@ export class ProductVariantProjection {
     const productId = variant[0].productId;
 
     // Update product_detail_view
-    await tx
+    await this.db
       .update(ProductDetailViewTable)
       .set({ variantStatus: "archived" })
       .where(eq(ProductDetailViewTable.variantId, variantId));
 
     // Recalculate and update product_list_view variant_count
-    const activeVariantCount = await tx
+    const activeVariantCount = await this.db
       .select({ count: sql<number>`count(*)::int` })
       .from(ProductDetailViewTable)
       .where(
@@ -110,7 +114,7 @@ export class ProductVariantProjection {
         )
       );
 
-    await tx
+    await this.db
       .update(ProductListViewTable)
       .set({
         variantCount: activeVariantCount[0]?.count ?? 0,
@@ -118,7 +122,7 @@ export class ProductVariantProjection {
       .where(eq(ProductListViewTable.productId, productId));
 
     // Recalculate and update collection_detail_view variant_count
-    await tx
+    await this.db
       .update(CollectionDetailViewTable)
       .set({
         variantCount: activeVariantCount[0]?.count ?? 0,

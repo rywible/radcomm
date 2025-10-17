@@ -1,7 +1,7 @@
 import type { DomainEvent } from "../domain/_base/domainEvent";
 import type { IntegrationEvent } from "../integrationEvents/_base";
-import { EventsTable, OutboxTable } from "./orm";
-import { eq, asc } from "drizzle-orm";
+import { EventsTable, OutboxTable, InboxTable } from "./orm";
+import { eq, asc, or, and, lt, inArray } from "drizzle-orm";
 import type { TX } from "./postgres";
 import {
   ProductCreatedEvent,
@@ -206,7 +206,8 @@ export class OutboxRepository {
   ): Promise<void> {
     const outboxMessage: typeof OutboxTable.$inferInsert = {
       id: integrationEvent.eventId,
-      createdAt: integrationEvent.occurredAt,
+      status: "pending",
+      attempts: 0,
       event: integrationEvent,
     };
 

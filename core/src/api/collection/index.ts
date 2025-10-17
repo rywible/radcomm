@@ -4,7 +4,7 @@ import {
   CreateCollectionCommand,
   ArchiveCollectionCommand,
 } from "@core/app/collection/commands";
-import { UnitOfWork } from "@core/app/unitOfWork";
+import { UnitOfWork } from "@core/infrastructure/unitOfWork";
 import {
   EventRepository,
   OutboxRepository,

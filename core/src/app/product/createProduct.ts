@@ -1,4 +1,4 @@
-import { UnitOfWork } from "../unitOfWork";
+import { UnitOfWork } from "../../infrastructure/unitOfWork";
 import { CreateProductCommand } from "./commands";
 import { ProductAggregate } from "@core/domain/product/aggregate";
 import { DomainEventMapper } from "../domainEventMapper";
