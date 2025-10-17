@@ -14,6 +14,7 @@ type OutboxPollerProps = {
   leaseBatchSize: number;
   processBatchSize: number;
   maxAttempts: number;
+  shutdownTimeoutMs?: number;
 };
 
 class OutboxPoller {
@@ -26,6 +27,7 @@ class OutboxPoller {
   private isShuttingDown: boolean = false;
   private inFlightOperations: number = 0;
   private pollIntervalMs: number;
+  private shutdownTimeoutMs: number;
 
   constructor({
     db,
@@ -34,6 +36,7 @@ class OutboxPoller {
     leaseBatchSize,
     processBatchSize,
     maxAttempts = 6,
+    shutdownTimeoutMs = 30000,
   }: OutboxPollerProps) {
     this.db = db;
     this.projectionHandler = projectionHandler;
@@ -41,6 +44,7 @@ class OutboxPoller {
     this.processBatchSize = processBatchSize;
     this.externalEffectHandler = externalEffectHandler;
     this.maxAttempts = maxAttempts;
+    this.shutdownTimeoutMs = shutdownTimeoutMs;
     this.pollIntervalMs = 20; // 20ms max cycle time (processing + wait)
   }
 
@@ -75,8 +79,18 @@ class OutboxPoller {
   }
 
   private async leaseMessages(): Promise<string[]> {
+    // Handle edge case: if leaseBatchSize is 0 or negative, don't lease anything
+    if (this.leaseBatchSize <= 0) {
+      return [];
+    }
+
     return await this.db.transaction(async (tx) => {
       const pendingIds = await this.getPendingIdsWithLock(tx);
+
+      if (pendingIds.length === 0) {
+        return pendingIds;
+      }
+
       await tx
         .update(OutboxTable)
         .set({ status: "in_progress", leasedAt: new Date() })
@@ -88,6 +102,12 @@ class OutboxPoller {
 
   private createChunksToProcess(ids: string[]): string[][] {
     const chunks: string[][] = [];
+
+    // Handle edge case: if processBatchSize is 0 or negative, don't process anything
+    if (this.processBatchSize <= 0) {
+      return chunks;
+    }
+
     for (let i = 0; i < ids.length; i += this.processBatchSize) {
       chunks.push(ids.slice(i, i + this.processBatchSize));
     }
@@ -141,12 +161,11 @@ class OutboxPoller {
   }
 
   private async waitForInFlightOperations(): Promise<void> {
-    const maxWaitTimeMs = 30000; // 30 seconds max wait
     const checkIntervalMs = 100; // Check every 100ms
     const startTime = Date.now();
 
     while (this.inFlightOperations > 0) {
-      if (Date.now() - startTime > maxWaitTimeMs) {
+      if (Date.now() - startTime > this.shutdownTimeoutMs) {
         console.warn(
           `OutboxPoller: Shutdown timeout reached with ${this.inFlightOperations} operations still in-flight`
         );

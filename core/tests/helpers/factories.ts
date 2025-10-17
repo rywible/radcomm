@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
-import type { IntegrationEvent } from "../../../core/src/integrationEvents/_base";
-import type { DB } from "../../../core/src/infrastructure/postgres";
-import { OutboxTable } from "../../../core/src/infrastructure/orm";
+import type { IntegrationEvent } from "../../src/integrationEvents/_base";
+import type { DB } from "../../src/infrastructure/postgres";
+import { OutboxTable } from "../../src/infrastructure/orm";
 
 export interface CreateOutboxMessageOptions {
   id?: string;
@@ -74,4 +74,3 @@ export async function createMultipleOutboxMessages(
   }
   return ids;
 }
-

@@ -6,17 +6,31 @@ services:
     command: ["pnpm", "storefront:dev"]
     volumes:
       - ./storefront/src:/app/storefront/src
+      - ./core/src:/app/core/src
+      - ./core/tests:/app/core/tests
+      - ./core/package.json:/app/core/package.json
+      - ./core/tsconfig.json:/app/core/tsconfig.json
+      - ./core/vitest.config.ts:/app/core/vitest.config.ts
+      - ./core/drizzle.config.ts:/app/core/drizzle.config.ts
+      - ./package.json:/app/package.json
     ports:
       - "4321:4321"
     environment:
       - NODE_ENV=development
-    env_file:
-      - ./.env
+      - DATABASE_URL=postgresql://slapcommerce:slapcommerce@postgres:5432/slapcommerce
+    depends_on:
+      postgres:
+        condition: service_healthy
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_USER: radcomm
-      POSTGRES_PASSWORD: radcomm
-      POSTGRES_DB: radcomm
+      POSTGRES_USER: slapcommerce
+      POSTGRES_PASSWORD: slapcommerce
+      POSTGRES_DB: slapcommerce
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slapcommerce"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

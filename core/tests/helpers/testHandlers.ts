@@ -1,4 +1,5 @@
-import type { IntegrationEvent } from "../../../core/src/integrationEvents/_base";
+import type { IntegrationEvent } from "../../src/integrationEvents/_base";
+import { sleep } from "./waitFor";
 
 export class ProjectionHandlerResult {
   public success: boolean;
@@ -60,6 +61,21 @@ export class MockProjectionHandler {
   }
 }
 
+export class MockProjectionHandlerPerfTesting {
+  async handleIntegrationEvent(
+    event: IntegrationEvent<string, Record<string, unknown>>
+  ): Promise<ProjectionHandlerResult> {
+    // Simulate database writes: 20-80ms with occasional spikes to 150ms
+    const baseTime = 50; // 50ms base for DB operations
+    const jitter = Math.random() * 60 - 30; // ±30ms jitter
+    const spikeChance = Math.random() < 0.1; // 10% chance of spike
+    const spikeTime = spikeChance ? Math.random() * 100 : 0; // 0-100ms extra spike
+
+    await sleep(baseTime + jitter + spikeTime);
+    return new ProjectionHandlerResult({ success: true });
+  }
+}
+
 export class MockExternalEffectHandler {
   public callCount = 0;
   public calledWith: IntegrationEvent<string, Record<string, unknown>>[] = [];
@@ -96,3 +112,17 @@ export class MockExternalEffectHandler {
   }
 }
 
+export class MockExternalEffectHandlerPerfTesting {
+  async handleIntegrationEvent(
+    event: IntegrationEvent<string, Record<string, unknown>>
+  ): Promise<ExternalEffectHandlerResult> {
+    // Simulate Stripe API calls: 150-400ms with occasional tail latency spikes
+    const baseTime = 250; // 250ms base for external API calls
+    const jitter = Math.random() * 200 - 100; // ±100ms jitter
+    const tailChance = Math.random() < 0.05; // 5% chance of tail latency
+    const tailTime = tailChance ? Math.random() * 400 + 200 : 0; // 200-600ms tail spike
+
+    await sleep(baseTime + jitter + tailTime);
+    return new ExternalEffectHandlerResult({ success: true });
+  }
+}

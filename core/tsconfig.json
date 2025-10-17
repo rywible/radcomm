@@ -3,7 +3,6 @@
   "compilerOptions": {
     /* Emit */
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -19,7 +18,7 @@
     /* Language / libs */
     "target": "ES2022",
     "lib": ["ES2022"],
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
 
     /* Safety */
     "strict": true,
@@ -35,5 +34,5 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/env.ts"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules", "tests"]
 }

@@ -7,9 +7,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
+    "test": "pnpm --filter @radcomm/core test",
+    "test:watch": "pnpm --filter @radcomm/core test:watch",
+    "test:ui": "pnpm --filter @radcomm/core test:ui",
+    "bench": "pnpm --filter @radcomm/core bench",
+    "bench:compare": "pnpm --filter @radcomm/core bench:compare",
     "storefront:dev": "cd storefront && pnpm dev --host 0.0.0.0",
     "drizzle:push": "docker compose up -d postgres && cd core && npx drizzle-kit push"
   },
@@ -19,10 +21,15 @@
   "packageManager": "pnpm@10.18.1",
   "devDependencies": {
     "@types/node": "^24.7.0",
+    "@types/pg": "^8.15.5",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.6",
     "eslint": "^9.37.0",
+    "pg": "^8.16.3",
     "prettier": "^3.6.2",
     "tsx": "^4.20.6",
     "turbo": "^2.5.8",
+    "uuid": "^13.0.0",
     "vitest": "^3.2.4"
   },
   "pnpm": {
